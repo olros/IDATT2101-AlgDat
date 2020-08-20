@@ -1,5 +1,3 @@
-package Java;
-
 public class Exercise2 {
 	// Complexity O(n)
 	public static double pow1(double x, int n) {
