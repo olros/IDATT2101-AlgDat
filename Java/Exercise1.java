@@ -1,7 +1,10 @@
 import java.util.function.BiFunction;
+import static java.lang.Math.*;
 
 public class Exercise1 {
+	// How many seconds each time test should run
 	private static final int SECONDS_PER_TIME_TEST = 1;
+	// Used to format output as tables
 	private static final String CHECK_COLUMNS_FORMAT = "%-20s%-10s%-10s%-10s%n";
 	private static final String TIME_COLUMNS_FORMAT = "%-8s%-15s%-15s%n";
 
@@ -11,7 +14,7 @@ public class Exercise1 {
 		else return x * pow1(x, n -1);
 	}
 
-	// Complexity O(log n)
+	// Complexity O(log(n))
 	public static double pow2(double x, int n) {
 		if (n == 0) return 1.0;
 		else if (n % 2 == 1) return x * pow2(x * x, (n - 1) / 2);
@@ -23,10 +26,12 @@ public class Exercise1 {
 		return Math.pow(x, n);
 	}
 
+	// Check if all algorithms calculates correctly
 	public static void checkCorrect(double x, int n, double answer) {
 		System.out.format(CHECK_COLUMNS_FORMAT, x + "^" + n + "=" + answer, pow1(x, n) == answer, pow2(x, n) == answer, pow3(x, n) == answer);
 	}
 
+	// Test how many times a function can run per second with the given x and n
 	public static void testTime(BiFunction<Double, Integer, Double> func, double x, int n) {
 		int count = 0;
 		long startTime = System.nanoTime();
