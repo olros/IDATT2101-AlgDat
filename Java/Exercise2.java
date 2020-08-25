@@ -1,69 +1,80 @@
-import java.util.function.BiFunction;
+import java.util.Arrays;
 
 public class Exercise2 {
-	private static final int SECONDS_PER_TIME_TEST = 2;
-	private static final String CHECK_COLUMNS_FORMAT = "%-20s%-10s%-10s%-10s%n";
-	private static final String TIME_COLUMNS_FORMAT = "%-8s%-15s%-15s%n";
-
-	// Complexity O(n)
-	public static double pow1(double x, int n) {
-		if (n == 0) return 1.0;
-		else return x * pow1(x, n -1);
+	private static void swap(int[] arr, int i, int j) {
+		int temp = arr[i];
+		arr[i] = arr[j];
+		arr[j] = temp;
 	}
 
-	// Complexity O(log n)
-	public static double pow2(double x, int n) {
-		if (n == 0) return 1.0;
-		else if (n % 2 == 1) return x * pow2(x * x, (n - 1) / 2);
-		else return pow2(x * x, n / 2);
-	}
+	public static void dualPivotQuickSort(int[] arr, int low, int high) {
+		if (low < high) {
+			// piv[] stores left pivot and right pivot.
+			// piv[0] means left pivot and
+			// piv[1] means right pivot
+			int[] piv;
+			piv = partition(arr, low, high);
 
-	// Complexity O(1)
-	public static double pow3(double x, int n) {
-		return Math.pow(x, n);
-	}
-
-	public static void checkCorrect(double x, int n, double answer) {
-		System.out.format(CHECK_COLUMNS_FORMAT, x + "^" + n + "=" + answer, pow1(x, n) == answer, pow2(x, n) == answer, pow3(x, n) == answer);
-	}
-
-	public static void testTime(BiFunction<Double, Integer, Double> func, double x, int n) {
-		int count = 0;
-		long startTime = System.nanoTime();
-		while(System.nanoTime() - startTime < 1000000000.0 * SECONDS_PER_TIME_TEST) {
-			func.apply(x, n);
-			count++;
+			dualPivotQuickSort(arr, low, piv[0] - 1);
+			dualPivotQuickSort(arr, piv[0] + 1, piv[1] - 1);
+			dualPivotQuickSort(arr, piv[1] + 1, high);
 		}
-		System.out.format(TIME_COLUMNS_FORMAT, n, count / SECONDS_PER_TIME_TEST, Math.round(1000000000.0 * SECONDS_PER_TIME_TEST / count) + " nanosecs.");
+	}
+
+	private static int[] partition(int[] arr, int low, int high) {
+		if (arr[low] > arr[high]) swap(arr, low, high);
+
+		// p is the left pivot, and q
+		// is the right pivot.
+		int j = low + 1;
+		int g = high - 1;
+		int k = low + 1;
+		int p = arr[low];
+		int q = arr[high];
+
+		while (k <= g) {
+			// If elements are less than the left pivot
+			if (arr[k] < p) {
+				swap(arr, k, j);
+				j++;
+			}
+
+			// If elements are greater than or equal
+			// to the right pivot
+			else if (arr[k] >= q) {
+				while (arr[g] > q && k < g)
+					g--;
+
+				swap(arr, k, g);
+				g--;
+
+				if (arr[k] < p) {
+					swap(arr, k, j);
+					j++;
+				}
+			}
+			k++;
+		}
+		j--;
+		g++;
+
+		// Bring pivots to their appropriate positions.
+		swap(arr, low, j);
+		swap(arr, high, g);
+
+		// Returning the indices of the pivots
+		// because we cannot return two elements
+		// from a function, we do that using an array.
+		return new int[] { j, g };
 	}
 
 	public static void main(String[] args) {
-		System.out.println("--- Check that the functions calculates correctly ---");
-		System.out.format(CHECK_COLUMNS_FORMAT, "Calculation", "Func 1", "Func 2", "Func 3");
-		checkCorrect(3, 14, 4782969);
-		checkCorrect(7, 4, 2401);
-		checkCorrect(2, 10, 1024);
-		double x = 3;
-		System.out.println("\n--- Count how many times the functions can run in a second ---");
-		System.out.println("Task 1 - O(n):");
-		System.out.format(TIME_COLUMNS_FORMAT, "N", "Runs per sec.", "Time per run");
-		testTime(Exercise2::pow1, x, 10);
-		testTime(Exercise2::pow1, x, 100);
-		testTime(Exercise2::pow1, x, 1000);
-		testTime(Exercise2::pow1, x, 10000);
+		int[] arr = { 24, 8, 42, 75, 29, 77, 38, 57 };
 
-		System.out.println("\nTask 2 - O(log n):");
-		System.out.format(TIME_COLUMNS_FORMAT, "N", "Runs per sec.", "Time per run");
-		testTime(Exercise2::pow2, x, 10);
-		testTime(Exercise2::pow2, x, 100);
-		testTime(Exercise2::pow2, x, 1000);
-		testTime(Exercise2::pow2, x, 10000);
-
-		System.out.println("\nTask 3 - O(1):");
-		System.out.format(TIME_COLUMNS_FORMAT, "N", "Runs per sec.", "Time per run");
-		testTime(Exercise2::pow3, x, 10);
-		testTime(Exercise2::pow3, x, 100);
-		testTime(Exercise2::pow3, x, 1000);
-		testTime(Exercise2::pow3, x, 10000);
+		System.out.println("Unsorted array: ");
+		Arrays.stream(arr).forEach(elem -> System.out.print(elem + " "));
+		dualPivotQuickSort(arr, 0, 7);
+		System.out.println("\nSorted array: ");
+		Arrays.stream(arr).forEach(elem -> System.out.print(elem + " "));
 	}
 }

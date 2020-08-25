@@ -23,11 +23,13 @@ void checkCorrect(double x, int n, double answer) {
     printf(pow3(x, n) == answer ? "true\n" : "false\n");
 }
 int main() {
-    checkCorrect(3, 17, 129140163.0);
-    checkCorrect(7, 4, 2401.0);
+  printf("%f\n", pow(3, 17));
+  printf("%f\n", pow3(7, 4));
+    checkCorrect(3, 17, pow3(3, 17));
+    checkCorrect(7, 4, pow3(7, 4));
     double x = 2;
-    int n = 500;
-    int seconds = 5;
+    int n = 10000;
+    int seconds = 1;
     int pow1Count = 0;
     time_t start, end;
     start = time(NULL);
