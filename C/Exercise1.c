@@ -23,8 +23,6 @@ void checkCorrect(double x, int n, double answer) {
     printf(pow3(x, n) == answer ? "true\n" : "false\n");
 }
 int main() {
-  printf("%f\n", pow(3, 17));
-  printf("%f\n", pow3(7, 4));
     checkCorrect(3, 17, pow3(3, 17));
     checkCorrect(7, 4, pow3(7, 4));
     double x = 2;
