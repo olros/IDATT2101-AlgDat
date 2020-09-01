@@ -1,5 +1,4 @@
 import java.util.function.BiFunction;
-import static java.lang.Math.*;
 
 public class Exercise1 {
 	// How many seconds each time test should run

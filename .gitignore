@@ -89,6 +89,7 @@ hs_err_pid*
 # IntelliJ
 .idea
 *.iml
+/out
 
 # Øvingsrapporter
 /Øvinger
