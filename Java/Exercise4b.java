@@ -15,11 +15,11 @@ public class Exercise4b {
 		}
 		System.out.println("Custom HashMap: " + totalTime / 1000000 + " millisecs");
 		System.out.println(hTable);
-		HashMap<Integer, Integer> hashMap = new HashMap<>(11765841);
+		HashMap<Integer, Integer> hashMap = new HashMap<>(randomNumbers.length);
 		totalTime = 0;
 		for (int i = 0; i < randomNumbers.length; i++) {
 			long start = System.nanoTime();
-			hashMap.put(i, randomNumbers[i]);
+			hashMap.put(randomNumbers[i], randomNumbers[i]);
 			totalTime += System.nanoTime() - start;
 		}
 		System.out.println("Java HashMap: " + totalTime / 1000000 + " millisecs");
@@ -27,7 +27,7 @@ public class Exercise4b {
 }
 
 class HugeHashTable {
-	private static final int PRIME = 1327217885;
+	private static final int PRIME = 7;
 	private final int[] table;
 	private int collisions = 0;
 	private int indexesTaken = 0;
@@ -63,17 +63,12 @@ class HugeHashTable {
 		int index = hash1(number);
 		if (table[index] != 0) {
 			int index2 = hash2(number);
-			while (true) {
+			while (table[index] != 0) {
 				index = (index + index2) % table.length;
 				collisions++;
-				if (table[index] == 0) {
-					table[index] = number;
-					break;
-				}
 			}
-		} else {
-			table[index] = number;
 		}
+    table[index] = number;
 		indexesTaken++;
 	}
 
