@@ -15,11 +15,11 @@ public class Exercise4b {
 		}
 		System.out.println("Custom HashMap: " + totalTime / 1000000 + " millisecs");
 		System.out.println(hTable);
-		HashMap<Integer, Integer> hashMap = new HashMap<>(11765841);
+		HashMap<Integer, Integer> hashMap = new HashMap<>(randomNumbers.length);
 		totalTime = 0;
 		for (int i = 0; i < randomNumbers.length; i++) {
 			long start = System.nanoTime();
-			hashMap.put(i, randomNumbers[i]);
+			hashMap.put(randomNumbers[i], randomNumbers[i]);
 			totalTime += System.nanoTime() - start;
 		}
 		System.out.println("Java HashMap: " + totalTime / 1000000 + " millisecs");
