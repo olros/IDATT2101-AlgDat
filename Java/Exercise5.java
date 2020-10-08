@@ -5,7 +5,7 @@ import java.util.*;
 
 public class Exercise5 {
 	public static void main(String[] args) throws IOException {
-		BufferedReader file = new BufferedReader(new FileReader("L7g6.txt"));
+		BufferedReader file = new BufferedReader(new FileReader("Java/L7g2.txt"));
 		Graph graph = graphFromFile(file);
 		graph.printSCC();
 	}

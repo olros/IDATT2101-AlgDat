@@ -124,7 +124,7 @@ class Node {
 	Node next;
 	Node previous;
 
-	public Node (int element, Node next, Node previous) {
+	Node (int element, Node next, Node previous) {
 		this.element = element;
 		this.next = next;
 		this.previous = previous;
