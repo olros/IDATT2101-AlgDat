@@ -146,37 +146,20 @@ public class LZ77 {
 	}
 
 	public static void main(String[] args) {
-		String inputFilename = "enwik8";
-		String outputFilename = "compressed.lz77";
-		String outputFilename2 = "decompressed";
+		String inputFilename = "newfile.lz77";
+		String outputFilename2 = "decompressed.txt";
 		try (
 				DataInputStream input = new DataInputStream(new BufferedInputStream(new FileInputStream(new File(inputFilename))));
-				DataOutputStream output = new DataOutputStream(new BufferedOutputStream(new FileOutputStream(outputFilename)));
 				DataOutputStream output2 = new DataOutputStream(new BufferedOutputStream(new FileOutputStream(outputFilename2)))
 		) {
 			int inputLength = input.available();
 			System.out.println("Input: " + inputLength);
 			byte[] inputData = new byte[inputLength];
 			input.readFully(inputData, 0, inputLength);
-			byte[] out = LZ77.compress(inputData);
+			byte[] out = LZ77.decompress(inputData);
 			System.out.println("Output: " + out.length);
 
-			output.write(out);
-			byte[] decoded = LZ77.decompress(out);
-			int decodedLength = decoded.length;
-			System.out.println("Expanded: " + decoded.length);
-			output2.write(decoded);
-
-			// Check same length
-			if (inputLength != decodedLength) {
-				throw new Exception("Decoded length differs from original.");
-			}
-			// Check that input and decoded is equal
-			for (int idx = 0; idx < inputLength; idx++) {
-				if (decoded[idx] != inputData[idx]) {
-					throw new Exception("Decoded data corrupt at index " + idx);
-				}
-			}
+			output2.write(out);
 		} catch (IOException e) {
 			System.out.println("Couldn't read file");
 			System.exit(0);
@@ -184,4 +167,43 @@ public class LZ77 {
 			e.printStackTrace();
 		}
 	}
+//	public static void main(String[] args) {
+//		String inputFilename = "test.txt";
+//		String outputFilename = "compressed.lz77";
+//		String outputFilename2 = "decompressed.txt";
+//		try (
+//				DataInputStream input = new DataInputStream(new BufferedInputStream(new FileInputStream(new File(inputFilename))));
+//				DataOutputStream output = new DataOutputStream(new BufferedOutputStream(new FileOutputStream(outputFilename)));
+//				DataOutputStream output2 = new DataOutputStream(new BufferedOutputStream(new FileOutputStream(outputFilename2)))
+//		) {
+//			int inputLength = input.available();
+//			System.out.println("Input: " + inputLength);
+//			byte[] inputData = new byte[inputLength];
+//			input.readFully(inputData, 0, inputLength);
+//			byte[] out = LZ77.compress(inputData);
+//			System.out.println("Output: " + out.length);
+//
+//			output.write(out);
+//			byte[] decoded = LZ77.decompress(out);
+//			int decodedLength = decoded.length;
+//			System.out.println("Expanded: " + decoded.length);
+//			output2.write(decoded);
+//
+//			// Check same length
+//			if (inputLength != decodedLength) {
+//				throw new Exception("Decoded length differs from original.");
+//			}
+//			// Check that input and decoded is equal
+//			for (int idx = 0; idx < inputLength; idx++) {
+//				if (decoded[idx] != inputData[idx]) {
+//					throw new Exception("Decoded data corrupt at index " + idx);
+//				}
+//			}
+//		} catch (IOException e) {
+//			System.out.println("Couldn't read file");
+//			System.exit(0);
+//		} catch (Exception e) {
+//			e.printStackTrace();
+//		}
+//	}
 }
