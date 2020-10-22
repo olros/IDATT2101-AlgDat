@@ -4,14 +4,22 @@ import java.io.*;
 
 public class Exercise7 {
 
+	private static String compressInput = "diverse.txt";
+	private static String compressHalfway = "compressed.lz77";
+	private static String compressed = "compressed";
+	private static String decompressHalfway = "decompressed.huffman";
+	private static String decompressed = "decompressed.txt";
+
+	public static void main(String[] args) throws IOException {
+//		compress();
+		decompress();
+	}
+
 	// Compress
-	public static void main(String[] args) {
-		String inputFilename = "forelesning.pdf";
-		String outputFilename = "compressed.lz77";
-		String outputFilename2 = "compressed";
+	private static void compress() {
 		try (
-				DataInputStream input = new DataInputStream(new BufferedInputStream(new FileInputStream(new File(inputFilename))));
-				DataOutputStream output = new DataOutputStream(new BufferedOutputStream(new FileOutputStream(outputFilename)));
+				DataInputStream input = new DataInputStream(new BufferedInputStream(new FileInputStream(new File(compressInput))));
+				DataOutputStream output = new DataOutputStream(new BufferedOutputStream(new FileOutputStream(compressHalfway)));
 		) {
 			int inputLength = input.available();
 			System.out.println("Input size: " + inputLength);
@@ -20,7 +28,7 @@ public class Exercise7 {
 			byte[] out = LZ77.compress(inputData);
 			System.out.println("Size after LZ: " + out.length);
 			output.write(out);
-			int compressedSize = Compress.compress(outputFilename, outputFilename2);
+			int compressedSize = Compress.compress(compressHalfway, compressed);
 			System.out.println("Size after LZ and Huffman: " + compressedSize);
 		} catch (IOException e) {
 			System.out.println("Couldn't read file");
@@ -31,15 +39,12 @@ public class Exercise7 {
 	}
 
 	// Decompress
-	public static void main2(String[] args) throws IOException {
-		String inputFilename = "compressed";
-		String outputFilename = "decompressed.huffman";
-		String outputFilename2 = "decompressed.pdf";
-		int decompressedSize = Compress.decompress(inputFilename, outputFilename);
+	private static void decompress() throws IOException {
+		int decompressedSize = Compress.decompress(compressed, decompressHalfway);
 		System.out.println("Size after Huffman decompress: " + decompressedSize);
 
-		DataInputStream lzInput = new DataInputStream(new BufferedInputStream(new FileInputStream(new File(outputFilename))));
-		DataOutputStream output = new DataOutputStream(new BufferedOutputStream(new FileOutputStream(outputFilename2)));
+		DataInputStream lzInput = new DataInputStream(new BufferedInputStream(new FileInputStream(new File(decompressHalfway))));
+		DataOutputStream output = new DataOutputStream(new BufferedOutputStream(new FileOutputStream(decompressed)));
 
 		int inputLength = lzInput.available();
 		byte[] inputData = new byte[inputLength];

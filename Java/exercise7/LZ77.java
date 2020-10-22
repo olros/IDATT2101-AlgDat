@@ -1,15 +1,14 @@
 package exercise7;
 
-import java.io.*;
-
 public class LZ77 {
 
 	// Buffer-size of 64kB
-	private static final int BUFFER_SIZE = 65536;
+	private static final int BUFFER_SIZE = 1024 * 64;
 	private static final int THRESHOLD = 3;
 	private static final int MAX_LENGTH = 127;
 
-	private LZ77() {}
+	private LZ77() {
+	}
 
 	/**
 	 * Compress an array of bytes
@@ -30,7 +29,7 @@ public class LZ77 {
 			int matchLength = 1;
 			// Make sure that the remaining inputs are more than the threshold
 			if (inputIndex + THRESHOLD < inputLength) {
-				int key = hashByte(input, inputIndex);
+				int key = hashBytes(input, inputIndex);
 				int searchIndex = indexArray[key & 0xFFFF] - 1;
 				while ((inputIndex - searchIndex) < BUFFER_SIZE && searchIndex >= 0) {
 					if (inputIndex + matchLength < inputLength && input[inputIndex + matchLength] == input[searchIndex + matchLength]) {
@@ -39,6 +38,7 @@ public class LZ77 {
 						while (inputIndex + length < inputLength && length < MAX_LENGTH && input[searchIndex + length] == input[inputIndex + length]) {
 							length++;
 						}
+						// If this equality is longer than the ones found before
 						if (length > matchLength) {
 							matchOffset = inputIndex - searchIndex;
 							matchLength = length;
@@ -62,7 +62,7 @@ public class LZ77 {
 				}
 				while (index < end) {
 					// Update the index for each byte of the input to be compressed.
-					int key2 = hashByte(input, index);
+					int key2 = hashBytes(input, index);
 					chainArray[index & 0xFFFF] = indexArray[key2 & 0xFFFF];
 					indexArray[key2 & 0xFFFF] = index + 1;
 					index++;
@@ -89,19 +89,20 @@ public class LZ77 {
 				inputIndex += matchLength;
 			}
 		}
+		// Shorten the byte-array to the final length
 		byte[] finalBytes = new byte[outputIndex];
 		if (outputIndex >= 0) System.arraycopy(output, 0, finalBytes, 0, outputIndex);
 		return finalBytes;
 	}
 
 	/**
-	 * Create a key from the index in the array and following 3
+	 * Create a kind of hash from the index in the array and the following 3
 	 *
 	 * @param input the array of bytes
 	 * @param index the index in the array
 	 * @return an int key
 	 */
-	private static int hashByte(byte[] input, int index) {
+	private static int hashBytes(byte[] input, int index) {
 		int key = (input[index] & 0xFF) * 33 + (input[index + 1] & 0xFF);
 		key = key * 33 + (input[index + 2] & 0xFF);
 		key = key * 33 + (input[index + 3] & 0xFF);
@@ -119,6 +120,7 @@ public class LZ77 {
 		byte[] output = new byte[inputLength * 20];
 		int inputIndex = 0;
 		int outputIndex = 0;
+		// While there is more to uncompress
 		while (inputIndex < inputLength) {
 			int matchOffset = 0;
 			int matchLength = input[inputIndex++] & 0xFF;
@@ -129,81 +131,22 @@ public class LZ77 {
 			}
 			int outputEnd = outputIndex + matchLength;
 			if (matchOffset == 0) {
+				// If it's uncompressed
 				while (outputIndex < outputEnd) {
 					if (inputIndex >= inputLength) break;
 					output[outputIndex++] = input[inputIndex++];
 				}
 			} else {
+				// Else find referenced and print that
 				while (outputIndex < outputEnd) {
 					output[outputIndex] = output[outputIndex - matchOffset];
 					outputIndex++;
 				}
 			}
 		}
+		// Shorten the byte-array to the final length
 		byte[] finalBytes = new byte[outputIndex];
 		System.arraycopy(output, 0, finalBytes, 0, outputIndex);
 		return finalBytes;
 	}
-
-	public static void main(String[] args) {
-		String inputFilename = "newfile.lz77";
-		String outputFilename2 = "decompressed.txt";
-		try (
-				DataInputStream input = new DataInputStream(new BufferedInputStream(new FileInputStream(new File(inputFilename))));
-				DataOutputStream output2 = new DataOutputStream(new BufferedOutputStream(new FileOutputStream(outputFilename2)))
-		) {
-			int inputLength = input.available();
-			System.out.println("Input: " + inputLength);
-			byte[] inputData = new byte[inputLength];
-			input.readFully(inputData, 0, inputLength);
-			byte[] out = LZ77.decompress(inputData);
-			System.out.println("Output: " + out.length);
-
-			output2.write(out);
-		} catch (IOException e) {
-			System.out.println("Couldn't read file");
-			System.exit(0);
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-	}
-//	public static void main(String[] args) {
-//		String inputFilename = "test.txt";
-//		String outputFilename = "compressed.lz77";
-//		String outputFilename2 = "decompressed.txt";
-//		try (
-//				DataInputStream input = new DataInputStream(new BufferedInputStream(new FileInputStream(new File(inputFilename))));
-//				DataOutputStream output = new DataOutputStream(new BufferedOutputStream(new FileOutputStream(outputFilename)));
-//				DataOutputStream output2 = new DataOutputStream(new BufferedOutputStream(new FileOutputStream(outputFilename2)))
-//		) {
-//			int inputLength = input.available();
-//			System.out.println("Input: " + inputLength);
-//			byte[] inputData = new byte[inputLength];
-//			input.readFully(inputData, 0, inputLength);
-//			byte[] out = LZ77.compress(inputData);
-//			System.out.println("Output: " + out.length);
-//
-//			output.write(out);
-//			byte[] decoded = LZ77.decompress(out);
-//			int decodedLength = decoded.length;
-//			System.out.println("Expanded: " + decoded.length);
-//			output2.write(decoded);
-//
-//			// Check same length
-//			if (inputLength != decodedLength) {
-//				throw new Exception("Decoded length differs from original.");
-//			}
-//			// Check that input and decoded is equal
-//			for (int idx = 0; idx < inputLength; idx++) {
-//				if (decoded[idx] != inputData[idx]) {
-//					throw new Exception("Decoded data corrupt at index " + idx);
-//				}
-//			}
-//		} catch (IOException e) {
-//			System.out.println("Couldn't read file");
-//			System.exit(0);
-//		} catch (Exception e) {
-//			e.printStackTrace();
-//		}
-//	}
 }
