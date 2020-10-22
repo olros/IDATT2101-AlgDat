@@ -4,15 +4,15 @@ import java.io.*;
 
 public class Exercise7 {
 
-	private static String compressInput = "diverse.txt";
+	private static String compressInput = "diverse.lyx";
 	private static String compressHalfway = "compressed.lz77";
 	private static String compressed = "compressed";
 	private static String decompressHalfway = "decompressed.huffman";
-	private static String decompressed = "decompressed.txt";
+	private static String decompressed = "decompressed.lyx";
 
 	public static void main(String[] args) throws IOException {
-//		compress();
-		decompress();
+		compress();
+//		decompress();
 	}
 
 	// Compress
@@ -28,7 +28,7 @@ public class Exercise7 {
 			byte[] out = LZ77.compress(inputData);
 			System.out.println("Size after LZ: " + out.length);
 			output.write(out);
-			int compressedSize = Compress.compress(compressHalfway, compressed);
+			int compressedSize = Huffman.compress(compressHalfway, compressed);
 			System.out.println("Size after LZ and Huffman: " + compressedSize);
 		} catch (IOException e) {
 			System.out.println("Couldn't read file");
@@ -40,7 +40,7 @@ public class Exercise7 {
 
 	// Decompress
 	private static void decompress() throws IOException {
-		int decompressedSize = Compress.decompress(compressed, decompressHalfway);
+		int decompressedSize = Huffman.decompress(compressed, decompressHalfway);
 		System.out.println("Size after Huffman decompress: " + decompressedSize);
 
 		DataInputStream lzInput = new DataInputStream(new BufferedInputStream(new FileInputStream(new File(decompressHalfway))));

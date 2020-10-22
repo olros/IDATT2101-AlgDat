@@ -4,7 +4,7 @@ import java.io.*;
 import java.util.ArrayList;
 import java.util.PriorityQueue;
 
-public class Compress {
+public class Huffman {
 	static int compress(String inputFile, String outputFile) throws IOException {
 		int count[] = new int[256];
 		DataInputStream f = new DataInputStream(new FileInputStream(inputFile));
@@ -29,7 +29,7 @@ public class Compress {
 		int j = 0;
 		ArrayList<Byte> bytes = new ArrayList<>();
 		for (int k = 0; k < amount; ++k) {
-			input = in.read();
+			input = Math.abs(in.read());
 			j = 0;
 			String bitString = tree.bitstring[input];
 			while (j < bitString.length()) {
@@ -76,36 +76,36 @@ public class Compress {
 			int freq = in.readInt();
 			count[i] = freq;
 		}
+
 		int lastByte = in.readInt();
 		PriorityQueue<Node> pq = new PriorityQueue<>(256, (a, b) -> a.count - b.count);
 		pq.addAll(makeNodeList(count));
 		Node tree = Node.makeHuffmanTree(pq);
-		FileOutputStream out = new FileOutputStream(new File(outputFile));
-		BufferedOutputStream bos = new BufferedOutputStream(out);
-		DataOutputStream os = new DataOutputStream(bos);
+		DataOutputStream out = new DataOutputStream(new FileOutputStream(outputFile));
 		byte ch;
 		byte[] bytes = in.readAllBytes();
 		in.close();
 		int length = bytes.length;
-		bitstreng h = new bitstreng(0, 0);
+		Bitstring h = new Bitstring(0, 0);
 		if (lastByte > 0) length--;
 		for (int i = 0; i < length; i++) {
 			ch = bytes[i];
-			bitstreng b = new bitstreng(8, ch);
-			h = bitstreng.konkatenere(h, b);
-			h = writeChar(tree, h, os);
+			Bitstring b = new Bitstring(8, ch);
+			h = Bitstring.concat(h, b);
+			h = writeChar(tree, h, out);
 		}
 		if (lastByte > 0) {
-			bitstreng b = new bitstreng(lastByte, bytes[length] >> (8 - lastByte));
-			h = bitstreng.konkatenere(h, b);
-			writeChar(tree, h, os);
+			Bitstring b = new Bitstring(lastByte, bytes[length] >> (8 - lastByte));
+			h = Bitstring.concat(h, b);
+			writeChar(tree, h, out);
 		}
 		in.close();
-		os.close();
-		return os.size();
+		out.flush();
+		out.close();
+		return out.size();
 	}
 
-	private static bitstreng writeChar(Node tree, bitstreng h, DataOutputStream os) throws IOException {
+	private static Bitstring writeChar(Node tree, Bitstring h, DataOutputStream os) throws IOException {
 		Node tempTree = tree;
 		int c = 0;
 		for (long j = 1 << h.lengde - 1; j != 0; j >>= 1) {
@@ -124,15 +124,6 @@ public class Compress {
 		}
 		return h;
 	}
-
-//	public static void main(String[] args) {
-//		try {
-//			compress("compressed.lz77");
-//			decompress("file.hoe");
-//		} catch (IOException e) {
-//			e.printStackTrace();
-//		}
-//	}
 }
 
 class Node {

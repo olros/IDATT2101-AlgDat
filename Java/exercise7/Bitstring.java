@@ -1,34 +1,27 @@
 package exercise7;
 
-import java.io.*;
-
-class bitstreng {
+public class Bitstring {
 	int lengde;
 	long biter;
 
-	bitstreng() {
+	Bitstring() {
 	}
 
-	bitstreng(int len, long bits) {
+	Bitstring(int len, long bits) {
 		lengde = len;
 		biter = bits;
 	}
 
-	bitstreng(bitstreng s) {
-		lengde = s.lengde;
-		biter = s.biter;
-	}
-
-	bitstreng(int len, byte b) {
+	Bitstring(int len, byte b) {
 		this.lengde = len;
 		this.biter = convertByte(b, len);
 	}
 
-	static bitstreng konkatenere(bitstreng s1, bitstreng s2) {
-		bitstreng ny = new bitstreng();
+	static Bitstring concat(Bitstring s1, Bitstring s2) {
+		Bitstring ny = new Bitstring();
 		ny.lengde = s1.lengde + s2.lengde;
 		if (ny.lengde > 64) {
-			System.out.println("For lang bitstreng, går ikke!");
+			System.out.println("For lang bitstreng, gÃ¥r ikke!");
 			return null;
 		}
 		ny.biter = s2.biter | (s1.biter << s2.lengde);
