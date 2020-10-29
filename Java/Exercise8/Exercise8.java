@@ -4,38 +4,70 @@ import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.PriorityQueue;
+import java.util.*;
 
 public class Exercise8 {
-
-}
-
-class Graph {
-	private static final String[] inputFields = new String[6];
-	Node[] nodes;
-	HashMap<String, Integer> places = new HashMap<>();
-	private int amountOfNodes;
-
 	public static void main(String[] args) {
 		try (
-				BufferedReader nodeFile = new BufferedReader(new FileReader("island/noder.txt"));
-				BufferedReader edgeFile = new BufferedReader(new FileReader("island/kanter.txt"));
-				BufferedReader POIFile = new BufferedReader(new FileReader("island/interessepkt.txt"))
+				BufferedReader nodeFile = new BufferedReader(new FileReader("noder.txt"));
+				BufferedReader edgeFile = new BufferedReader(new FileReader("kanter.txt"));
+				BufferedReader POIFile = new BufferedReader(new FileReader("interessepkt.txt"))
 		) {
 			Graph graph = new Graph(nodeFile, edgeFile, POIFile);
-//			System.out.println("\nNearest: ");
-//			graph.findNearestByTypeWithDijkstra(96862, 2);
-			System.out.println("\nRoute: ");
-			graph.findRouteWithDijkstra(graph.places.get("\"Svínafell\""), graph.places.get("\"Flaga\""));
-//			System.out.println("\nRoute: ");
-//			graph.findRouteWithAstar(206, 1497);
+			Scanner in = new Scanner(System.in);
+			while (true) {
+				System.out.println("\n**** Options: ****");
+				System.out.println("Nearest by type: 1");
+				System.out.println("Route dijkstra: 2");
+				System.out.println("Route A*: 3");
+				System.out.println("End program: -1");
+
+				System.out.print("What to do: ");
+				int toDo = in.nextInt();
+				if (toDo == 1) {
+					in.nextLine();
+					System.out.print("Around where: ");
+					Integer place = graph.places.get(in.nextLine());
+					System.out.print("Type: ");
+					int type = in.nextInt();
+					if (place == null) {
+						System.out.println("Couldn't find the place");
+						continue;
+					}
+					graph.findNearestByTypeWithDijkstra(place, type);
+				} else if (toDo == 2 || toDo == 3) {
+					in.nextLine();
+					System.out.print("From where: ");
+					Integer from = graph.places.get(in.nextLine());
+					System.out.print("To where: ");
+					Integer to = graph.places.get(in.nextLine());
+					if (from == null || to == null) {
+						System.out.println("Couldn't find the places");
+						continue;
+					}
+					System.out.println("Route: ");
+					if (toDo == 2) {
+						graph.findRouteWithDijkstra(from, to);
+					} else {
+						graph.findRouteWithAstar(from, to);
+					}
+				} else if (toDo == -1) {
+					System.out.println("Exits...");
+					break;
+				}
+				graph.reset();
+			}
 		} catch (IOException e) {
 			System.out.println("ERROR: Couldn't read some of the files");
 		}
 
 	}
+}
+
+class Graph {
+	Node[] nodes;
+	HashMap<String, Integer> places = new HashMap<>();
+	int amountOfNodes;
 
 	public Graph(BufferedReader nodesFile, BufferedReader edgesFiles, BufferedReader POIsFile) throws IOException {
 		readNodes(nodesFile);
@@ -43,65 +75,63 @@ class Graph {
 		readPOIs(POIsFile);
 	}
 
-	private static void lineSplit(String line, int amount) {
-		int j = 0;
-		int length = line.length();
-		for (int i = 0; i < amount; ++i) {
-			while (line.charAt(j) <= ' ') ++j;
-			int wordStart = j;
-			while (j < length && line.charAt(j) > ' ') ++j;
-			inputFields[i] = line.substring(wordStart, j);
+	// Reset the nodes to prepare for a new run
+	public void reset() {
+		for (Node node : this.nodes) {
+			node.endNode = false;
+			node.data = new Previous();
+			node.visited = false;
 		}
 	}
 
 	private void readNodes(BufferedReader nodesFile) throws IOException {
-		lineSplit(nodesFile.readLine(), 1);
-		this.amountOfNodes = Integer.parseInt(inputFields[0]);
+		StringTokenizer st = new StringTokenizer(nodesFile.readLine());
+		this.amountOfNodes = Integer.parseInt(st.nextToken());
 		this.nodes = new Node[amountOfNodes];
 		for (int i = 0; i < amountOfNodes; ++i) {
-			lineSplit(nodesFile.readLine(), 3);
-//			System.out.println(inputFields[0] + ", " + inputFields[1] + ", " + inputFields[2]);
-			int index = Integer.parseInt(inputFields[0]);
-			double lat = Double.parseDouble(inputFields[1]) * (180 / Math.PI);
-			double lon = Double.parseDouble(inputFields[2]) * (180 / Math.PI);
-			this.nodes[index] = new Node(index, lat, lon);
-			this.nodes[index].data = new Previous();
+			st = new StringTokenizer(nodesFile.readLine());
+			int index = Integer.parseInt(st.nextToken());
+			double lat = Double.parseDouble(st.nextToken()) * (180 / Math.PI);
+			double lon = Double.parseDouble(st.nextToken()) * (180 / Math.PI);
+			nodes[index] = new Node(index, lat, lon);
+			nodes[index].data = new Previous();
+			nodes[index].cosLat = Math.cos(lat);
 		}
 	}
 
 	private void readEdges(BufferedReader edgesFile) throws IOException {
-		lineSplit(edgesFile.readLine(), 1);
-		for (int i = 0; i < Integer.parseInt(inputFields[0]); ++i) {
-			lineSplit(edgesFile.readLine(), 5);
-			int from = Integer.parseInt(inputFields[0]);
-			int to = Integer.parseInt(inputFields[1]);
-			int time = Integer.parseInt(inputFields[2]);
-			int distance = Integer.parseInt(inputFields[3]);
-			int speedLimit = Integer.parseInt(inputFields[4]);
-//			System.out.println(inputFields[0] + ", " + inputFields[1] + ", " + inputFields[2] + ", " + inputFields[3] + ", " + inputFields[4]);
-			Edge edge = new Edge(this.nodes[to], this.nodes[from].firstEdge, time, distance, speedLimit);
-			this.nodes[from].firstEdge = edge;
+		StringTokenizer st = new StringTokenizer(edgesFile.readLine());
+		int amount = Integer.parseInt(st.nextToken());
+		for (int i = 0; i < amount; ++i) {
+			st = new StringTokenizer(edgesFile.readLine());
+			int from = Integer.parseInt(st.nextToken());
+			int to = Integer.parseInt(st.nextToken());
+			int weight = Integer.parseInt(st.nextToken());
+			int length = Integer.parseInt(st.nextToken());
+			int speedlimit = Integer.parseInt(st.nextToken());
+			nodes[from].firstEdge = new Edge(nodes[to], nodes[from].firstEdge, weight, speedlimit, length);
 		}
 	}
 
 	private void readPOIs(BufferedReader POIsFile) throws IOException {
-		lineSplit(POIsFile.readLine(), 1);
-		int amountOfPOIs = Integer.parseInt(inputFields[0]);
-		for (int i = 0; i < amountOfPOIs; ++i) {
-			lineSplit(POIsFile.readLine(), 3);
-			int nodeNr = Integer.parseInt(inputFields[0]);
-			int type = Integer.parseInt(inputFields[1]);
-			String name = inputFields[2];
-			nodes[nodeNr].name = name;
-			nodes[nodeNr].type = type;
-			this.places.put(name, nodeNr);
+		StringTokenizer st = new StringTokenizer(POIsFile.readLine());
+		int m = Integer.parseInt(st.nextToken());
+		for (int i = 0; i < m; ++i) {
+			st = new StringTokenizer(POIsFile.readLine());
+			int n = Integer.parseInt(st.nextToken());
+			int type = Integer.parseInt(st.nextToken());
+			String name = st.nextToken();
+			while (st.hasMoreTokens()) name += " " + st.nextToken();
+			this.nodes[n].type = type;
+			this.nodes[n].name = name;
+			this.places.put(name, n);
 		}
 	}
 
 	private int findDistance(Node node1, Node node2) {
 		double sinLat = Math.sin((node1.latitude - node2.latitude) / 2.0);
 		double sinLng = Math.sin((node1.longitude - node2.longitude) / 2.0);
-		return (int) (35285538.46153846153846153846 * Math.asin(Math.sqrt(
+		return (int) (2 * 6371 * Math.asin(Math.sqrt(
 				sinLat * sinLat + node1.cosLat * node2.cosLat * sinLng * sinLng)));
 	}
 
@@ -114,14 +144,14 @@ class Graph {
 	}
 
 	private Node[] dijkstraNearestByType(Node startNode, int type) {
+		startNode.data.distance = 0;
 		PriorityQueue<Node> queue = getDijkstraPriorityQueue();
 		queue.add(startNode);
 		Node[] nearest = new Node[10];
 		int noFound = 0;
-		for (int i = this.amountOfNodes; i > 1; --i) {
+		for (int i = this.amountOfNodes; i > 1 && !queue.isEmpty(); --i) {
 			Node node = queue.poll();
-			if (node == null) continue;
-			if ((node.type == type || ((type == 2 || type == 4) && node.type == 6)) && !node.visited) {
+			if (!node.visited && (node.type == type || ((type == 2 || type == 4) && node.type == 6))) {
 				nearest[noFound] = node;
 				noFound++;
 				node.visited = true;
@@ -135,12 +165,14 @@ class Graph {
 	}
 
 	public void findNearestByTypeWithDijkstra(int startNodeNr, int type) {
-		System.out.println(this.nodes[startNodeNr].toString());
-		Node[] nodes = dijkstraNearestByType(this.nodes[startNodeNr], type);
-		for (Node node : nodes) {
-			if (node != null) {
-				System.out.println(node.name + " " + node.type + " " + node.index);
-			}
+		Node[] nearestNodes = dijkstraNearestByType(this.nodes[startNodeNr], type);
+		for (Node node : nearestNodes) {
+			if (node != null) System.out.println(node.name + " " + node.type);
+		}
+		System.out.println("Locations: ");
+		for (Node node : nearestNodes) {
+			if (node != null)
+				System.out.println(node.latitude * (Math.PI / 180) + ", " + node.longitude * (Math.PI / 180));
 		}
 	}
 
@@ -150,9 +182,8 @@ class Graph {
 		PriorityQueue<Node> queue = getDijkstraPriorityQueue();
 		queue.add(startNode);
 		int count = 0;
-		while (queue.size() > 0) {
+		while (!queue.isEmpty()) {
 			Node node = queue.poll();
-			System.out.println(node.firstEdge);
 			count++;
 			if (node.endNode) return count;
 			for (Edge edge = node.firstEdge; edge != null; edge = edge.nextEdge) {
@@ -202,24 +233,29 @@ class Graph {
 	}
 
 	private void printRoute(Node startNode, Node endNode) {
-//		try (FileWriter outputStream = new FileWriter(startNode.name + "-" + endNode.name + ".txt")) {
-		try (FileWriter outputStream = new FileWriter("route.txt")) {
+		String startName = startNode.name.replaceAll("[^a-zA-Z0-9]", "");
+		String endName = endNode.name.replaceAll("[^a-zA-Z0-9]", "");
+		String fileName = startName + "-" + endName + ".txt";
+		try (FileWriter outputStream = new FileWriter(fileName)) {
 			Node node = endNode;
-			System.out.println(node.data.distance);
+			int milliseconds = node.data.distance * 10;
+			int seconds = (milliseconds / 1000) % 60;
+			int minutes = ((milliseconds / (1000 * 60)) % 60);
+			int hours = ((milliseconds / (1000 * 60 * 60)) % 24);
+			System.out.println("Time: " + String.format("%02d hours, %02d min, %02d sec", hours, minutes, seconds));
 			while (node != null) {
 				outputStream.write(node.toString() + "\n");
 				node = node.data.previousNode;
 			}
+			System.out.println("The route has been printed to the file: " + fileName);
 		} catch (IOException e) {
-			e.printStackTrace();
-			System.out.println("ERROR: Couldn't print route.");
+			System.out.println("ERROR: Couldn't find/print route.");
 		}
 	}
 
-	private void shorten(Node node, Edge edge, PriorityQueue<Node> queue) {
+	void shorten(Node node, Edge edge, PriorityQueue<Node> queue) {
 		Previous nodeData = node.data;
 		Previous nextNodeData = edge.to.data;
-		System.out.println("Info: " + nextNodeData.distance  + ", " +  nodeData.distance  + ", " +  edge.time);
 		if (nextNodeData.distance > nodeData.distance + edge.time) {
 			nextNodeData.distance = nodeData.distance + edge.time;
 			nextNodeData.previousNode = node;
@@ -227,7 +263,7 @@ class Graph {
 		}
 	}
 
-	private void shorten(Node startNode, Edge edge, Node endNode, PriorityQueue<Node> queue) {
+	void shorten(Node startNode, Edge edge, Node endNode, PriorityQueue<Node> queue) {
 		if (edge.to.data.distanceToEnd == -1) {
 			int dist = findDistance(edge.to, endNode);
 			edge.to.data.distanceToEnd = dist;
@@ -261,17 +297,13 @@ class Node {
 		this.latitude = latitude;
 		this.longitude = longitude;
 		this.cosLat = Math.cos(latitude);
+		this.visited = false;
+		this.name = "";
 	}
 
 	@Override
 	public String toString() {
-		return "Node{" +
-				"index=" + index +
-				", latitude=" + latitude +
-				", longitude=" + longitude +
-				", type=" + type +
-				", name='" + name + '\'' +
-				'}';
+		return latitude * (Math.PI / 180) + ", " + longitude * (Math.PI / 180) + ", " + name;
 	}
 }
 
@@ -288,14 +320,6 @@ class Edge {
 		this.time = time;
 		this.distance = distance;
 		this.speedLimit = speedLimit;
-	}
-
-	@Override
-	public String toString() {
-		return "Edge{" +
-				"to=" + to +
-				", time=" + time +
-				'}';
 	}
 }
 
