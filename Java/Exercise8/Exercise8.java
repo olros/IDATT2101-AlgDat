@@ -91,8 +91,8 @@ class Graph {
 		for (int i = 0; i < amountOfNodes; ++i) {
 			st = new StringTokenizer(nodesFile.readLine());
 			int index = Integer.parseInt(st.nextToken());
-			double lat = Double.parseDouble(st.nextToken()) * (180 / Math.PI);
-			double lon = Double.parseDouble(st.nextToken()) * (180 / Math.PI);
+			double lat = Double.parseDouble(st.nextToken()) * (Math.PI / 180);
+			double lon = Double.parseDouble(st.nextToken()) * (Math.PI / 180);
 			nodes[index] = new Node(index, lat, lon);
 			nodes[index].data = new Previous();
 			nodes[index].cosLat = Math.cos(lat);
@@ -131,7 +131,7 @@ class Graph {
 	private int findDistance(Node node1, Node node2) {
 		double sinLat = Math.sin((node1.latitude - node2.latitude) / 2.0);
 		double sinLng = Math.sin((node1.longitude - node2.longitude) / 2.0);
-		return (int) (2 * 6371 * Math.asin(Math.sqrt(
+		return (int) (35285538.46153846153846153846 * Math.asin(Math.sqrt(
 				sinLat * sinLat + node1.cosLat * node2.cosLat * sinLng * sinLng)));
 	}
 
@@ -172,7 +172,7 @@ class Graph {
 		System.out.println("Locations: ");
 		for (Node node : nearestNodes) {
 			if (node != null)
-				System.out.println(node.latitude * (Math.PI / 180) + ", " + node.longitude * (Math.PI / 180));
+				System.out.println(node.latitude * (180 / Math.PI) + ", " + node.longitude * (180 / Math.PI));
 		}
 	}
 
@@ -264,13 +264,13 @@ class Graph {
 	}
 
 	void shorten(Node startNode, Edge edge, Node endNode, PriorityQueue<Node> queue) {
-		if (edge.to.data.distanceToEnd == -1) {
-			int dist = findDistance(edge.to, endNode);
-			edge.to.data.distanceToEnd = dist;
-			edge.to.data.fullDistance = dist + edge.to.data.distance;
-		}
 		Previous startPrevious = startNode.data;
 		Previous endPrevious = edge.to.data;
+		if (endPrevious.distanceToEnd == -1) {
+			int dist = findDistance(edge.to, endNode);
+			endPrevious.distanceToEnd = dist;
+			endPrevious.fullDistance = dist + endPrevious.distance;
+		}
 		if (endPrevious.distance > startPrevious.distance + edge.time) {
 			endPrevious.distance = startPrevious.distance + edge.time;
 			endPrevious.previousNode = startNode;
@@ -303,7 +303,7 @@ class Node {
 
 	@Override
 	public String toString() {
-		return latitude * (Math.PI / 180) + ", " + longitude * (Math.PI / 180) + ", " + name;
+		return latitude * (180 / Math.PI) + ", " + longitude * (180 / Math.PI) + ", " + name;
 	}
 }
 
